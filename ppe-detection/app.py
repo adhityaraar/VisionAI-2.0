@@ -140,27 +140,37 @@ def gen_label(frame):
     cleanup_old_person_states()
     
     # Use tracking mode to get persistent IDs for persons
-    result = model.track(frame, agnostic_nms=True, persist=True)[0]
+    track_result = model.track(frame, agnostic_nms=True, persist=True)[0]
+    
+    # Also run regular detection to get ALL classes including Hardhat and NO-Hardhat
+    detect_result = model(frame, agnostic_nms=True)[0]
     
     # Separate detections by class
     persons = []  # [(x1, y1, x2, y2, confidence, track_id), ...]
     hardhats = []  # [(x1, y1, x2, y2, confidence), ...]
     no_hardhats = []  # [(x1, y1, x2, y2, confidence), ...]
     
-    # Parse all detections
-    if result.boxes.id is not None:
-        for i, box in enumerate(result.boxes.data):
+    # Parse tracked persons (from track_result)
+    if track_result.boxes.id is not None:
+        for i, box in enumerate(track_result.boxes.data):
             # Unpack only the first 6 values (x1, y1, x2, y2, confidence, class_id)
             x1, y1, x2, y2, confidence, class_id = box[:6]
             class_name = class_names[int(class_id)]
             
             if class_name == "Person" and confidence > 0.5:
-                track_id = int(result.boxes.id[i])
+                track_id = int(track_result.boxes.id[i])
                 persons.append((float(x1), float(y1), float(x2), float(y2), float(confidence), track_id))
-            elif class_name == "Hardhat" and confidence > 0.5:
-                hardhats.append((float(x1), float(y1), float(x2), float(y2), float(confidence)))
-            elif class_name == "NO-Hardhat" and confidence > 0.5:
-                no_hardhats.append((float(x1), float(y1), float(x2), float(y2), float(confidence)))
+    
+    # Parse all detections including Hardhat and NO-Hardhat (from detect_result)
+    for box in detect_result.boxes.data:
+        # Unpack only the first 6 values (x1, y1, x2, y2, confidence, class_id)
+        x1, y1, x2, y2, confidence, class_id = box[:6]
+        class_name = class_names[int(class_id)]
+        
+        if class_name == "Hardhat" and confidence > 0.5:
+            hardhats.append((float(x1), float(y1), float(x2), float(y2), float(confidence)))
+        elif class_name == "NO-Hardhat" and confidence > 0.5:
+            no_hardhats.append((float(x1), float(y1), float(x2), float(y2), float(confidence)))
     
     # Track current frame's person states
     current_time = datetime.now()
