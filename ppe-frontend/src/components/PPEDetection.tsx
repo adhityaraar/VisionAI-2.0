@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { MoreVertical, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 export function PPEDetection() {
 	const [imageSrc, setImageSrc] = useState<string>("");
@@ -28,14 +27,6 @@ export function PPEDetection() {
 
 	return (
 		<div className="space-y-6 p-6">
-			{/* Header */}
-			<div className="flex items-center justify-between">
-				<div></div>
-				<Button variant="ghost" size="icon">
-					<MoreVertical className="h-5 w-5" />
-				</Button>
-			</div>
-
 			{/* Video Feed Card */}
 			<Card>
 				<CardHeader>

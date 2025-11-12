@@ -6,7 +6,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Bell, CheckCircle2 } from "lucide-react";
+import { Bell } from "lucide-react";
 
 type RiskLevel = "low" | "medium" | "high";
 

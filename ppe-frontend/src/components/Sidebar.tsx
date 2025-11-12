@@ -1,15 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Camera, Settings, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import visionAiLogo from "@/assets/vision-ai-logo.png";
-
-const navigation = [
-	{ name: "Dashboard", href: "/", icon: LayoutDashboard },
-	{ name: "PPE Detection", href: "/detection", icon: Camera },
-	{ name: "Settings", href: "/settings", icon: Settings },
-];
+import { navigation } from "./const";
 
 export function Sidebar() {
 	const router = useRouterState();
@@ -17,7 +12,7 @@ export function Sidebar() {
 	const { theme, toggleTheme } = useTheme();
 
 	return (
-		<div className="flex h-screen w-64 flex-col bg-card border-r border-border">
+		<div className="hidden h-full w-64 flex-col border-r border-border bg-card md:flex md:h-screen">
 			<div className="flex h-16 items-center gap-3 px-6 border-b border-border">
 				<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
 					<img src={visionAiLogo} alt="Vision AI Logo" className="h-6 w-6" />
