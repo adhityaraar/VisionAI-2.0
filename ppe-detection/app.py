@@ -40,12 +40,25 @@ high_risk_active = False
 
 cap = None
 
+def get_ip_address():
+    """Get the local IP address of the device"""
+    try:
+        ip_address = subprocess.check_output(
+            "ifconfig | grep \"inet \" | grep -Fv 127.0.0.1 | awk '{print $2}'",
+            shell=True
+        ).decode("utf-8").strip()
+        return ip_address or "Could not get IP address"
+    except subprocess.CalledProcessError:
+        return "Could not get IP address"
+
 async def send_telegram_alert(no_hardhat_count):
     """Send Telegram alert when high risk is detected"""
+    ip = get_ip_address()
     message = (
         f"⚠️ Safety Gear Alert!\n"
         f"CamGuardians has detected {no_hardhat_count} worker(s) without a hardhat. "
-        "Please address this safety violation immediately."
+        "Please address this safety violation immediately.\n\n"
+        f"To review the camera feed, please visit: http://{ip}:5000/"
     )
     
     for chat_id in CHAT_ID:
