@@ -34,7 +34,37 @@ import {
 	Shield,
 	Activity,
 	Calendar,
+	MapPin,
+	Video,
 } from "lucide-react";
+import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Camera data - Jakarta Pusat locations
+interface Camera {
+	id: number;
+	name: string;
+	position: [number, number]; // [latitude, longitude]
+	status: "active" | "inactive";
+	zone: string;
+}
+
+const cameras: Camera[] = [
+	{
+		id: 1,
+		name: "Camera 1 - Menteng",
+		position: [-6.1951, 106.8451], // Menteng, Jakarta Pusat
+		status: "active",
+		zone: "Logi Warehouse Menteng",
+	},
+	{
+		id: 2,
+		name: "Camera 2 - Tanah Abang",
+		position: [-6.1875, 106.8142], // Tanah Abang, Jakarta Pusat
+		status: "inactive",
+		zone: "Logi Warehouse Tanah Abang",
+	},
+];
 
 export function Dashboard() {
 	const [filterType, setFilterType] = useState<DateFilterType>("today");
@@ -254,6 +284,126 @@ export function Dashboard() {
 					</div>
 				</CardContent>
 			</Card>
+
+			{/* Active Cameras Map */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Video className="h-5 w-5" />
+						Active Camera
+					</CardTitle>
+					<CardDescription>
+						Status operasional kamera PPE Detection
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-4">
+						{/* Camera Status Summary */}
+						<div className="flex flex-wrap gap-4">
+							<div className="flex items-center gap-2">
+								<div className="h-3 w-3 rounded-full bg-green-500" />
+								<span className="text-sm">
+									Active: {cameras.filter((c) => c.status === "active").length}
+								</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<div className="h-3 w-3 rounded-full bg-red-500" />
+								<span className="text-sm">
+									Inactive:{" "}
+									{cameras.filter((c) => c.status === "inactive").length}
+								</span>
+							</div>
+						</div>
+
+						{/* Map */}
+						<div className="h-[400px] w-full rounded-lg overflow-hidden border border-border">
+							<MapContainer
+								center={[-6.1913, 106.8296]} // Center of Jakarta Pusat
+								zoom={13}
+								style={{ height: "100%", width: "100%" }}
+								scrollWheelZoom={false}
+							>
+								<TileLayer
+									attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+									url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+								/>
+								{cameras.map((camera) => (
+									<CircleMarker
+										key={camera.id}
+										center={camera.position}
+										radius={15}
+										pathOptions={{
+											fillColor:
+												camera.status === "active" ? "#22c55e" : "#ef4444",
+											fillOpacity: 0.8,
+											color: camera.status === "active" ? "#16a34a" : "#dc2626",
+											weight: 2,
+										}}
+									>
+										<Popup>
+											<div className="space-y-1">
+												<div className="flex items-center gap-2">
+													<MapPin className="h-4 w-4" />
+													<strong>{camera.name}</strong>
+												</div>
+												<p className="text-sm">Zone: {camera.zone}</p>
+												<p className="text-sm">
+													Status:{" "}
+													<span
+														className={
+															camera.status === "active"
+																? "text-green-600 font-medium"
+																: "text-red-600 font-medium"
+														}
+													>
+														{camera.status === "active" ? "Active" : "Inactive"}
+													</span>
+												</p>
+											</div>
+										</Popup>
+									</CircleMarker>
+								))}
+							</MapContainer>
+						</div>
+
+						{/* Camera List */}
+						<div className="grid gap-2 sm:grid-cols-2">
+							{cameras.map((camera) => (
+								<div
+									key={camera.id}
+									className="flex items-center justify-between rounded-lg border border-border p-3"
+								>
+									<div className="flex items-center gap-3">
+										<div
+											className={`h-2 w-2 rounded-full ${
+												camera.status === "active"
+													? "bg-green-500"
+													: "bg-red-500"
+											}`}
+										/>
+										<div>
+											<p className="text-sm font-medium">{camera.name}</p>
+											<p className="text-xs text-muted-foreground">
+												{camera.zone}
+											</p>
+										</div>
+									</div>
+									<span
+										className={`text-xs font-medium ${
+											camera.status === "active"
+												? "text-green-600"
+												: "text-red-600"
+										}`}
+									>
+										{camera.status === "active" ? "Active" : "Inactive"}
+									</span>
+								</div>
+							))}
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
 			{/* Stats Cards */}
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				<Card>
