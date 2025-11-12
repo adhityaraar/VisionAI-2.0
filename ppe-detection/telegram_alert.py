@@ -3,13 +3,13 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import subprocess, asyncio
 
-BOT_TOKEN = "xxx"
-CHAT_ID = ["xxx", "xxx"]
+BOT_TOKEN = "6474138130:AAF81sKjkWpt5Y5RA15kOiMDctDEB4tg_VY"
+CHAT_ID = ["-4980773889"] #["1348980452"]
 helmet = "helmet"
 
 message = (
     "⚠️ Safety Gear Alert!\n"
-    f"CamGuardians has detected a worker without a {helmet}. "
+    f"VisionAI has detected a worker without a {helmet}. "
     "Please address this safety violation immediately."
 )
 
