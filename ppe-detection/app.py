@@ -35,7 +35,7 @@ bot = Bot(token=BOT_TOKEN)
 
 # Rate limiting - prevent spam alerts
 last_alert_time = None
-ALERT_COOLDOWN = timedelta(seconds=5)  # Minimum 30 seconds between alerts
+ALERT_COOLDOWN = timedelta(seconds=1)  # Minimum 30 seconds between alerts
 high_risk_active = False
 
 cap = None
