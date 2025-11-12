@@ -1,6 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Camera } from "lucide-react";
+import { LayoutDashboard, Camera, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/hooks/useTheme";
+import { Button } from "@/components/ui/button";
 import visionAiLogo from "@/assets/vision-ai-logo.png";
 
 const navigation = [
@@ -11,9 +13,10 @@ const navigation = [
 export function Sidebar() {
 	const router = useRouterState();
 	const currentPath = router.location.pathname;
+	const { theme, toggleTheme } = useTheme();
 
 	return (
-		<div className="flex h-screen w-64 flex-col bg-[#1a1a1a] border-r border-border">
+		<div className="flex h-screen w-64 flex-col bg-card border-r border-border">
 			<div className="flex h-16 items-center gap-3 px-6 border-b border-border">
 				<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
 					<img src={visionAiLogo} alt="Vision AI Logo" className="h-6 w-6" />
@@ -40,6 +43,26 @@ export function Sidebar() {
 					);
 				})}
 			</nav>
+			<div className="border-t border-border p-4">
+				<Button
+					variant="ghost"
+					size="sm"
+					onClick={toggleTheme}
+					className="w-full justify-start gap-3"
+				>
+					{theme === "dark" ? (
+						<>
+							<Sun className="h-5 w-5" />
+							<span>Light Mode</span>
+						</>
+					) : (
+						<>
+							<Moon className="h-5 w-5" />
+							<span>Dark Mode</span>
+						</>
+					)}
+				</Button>
+			</div>
 		</div>
 	);
 }
