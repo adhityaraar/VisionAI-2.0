@@ -150,7 +150,8 @@ def gen_label(frame):
     # Parse all detections
     if result.boxes.id is not None:
         for i, box in enumerate(result.boxes.data):
-            x1, y1, x2, y2, confidence, class_id = box
+            # Unpack only the first 6 values (x1, y1, x2, y2, confidence, class_id)
+            x1, y1, x2, y2, confidence, class_id = box[:6]
             class_name = class_names[int(class_id)]
             
             if class_name == "Person" and confidence > 0.5:
