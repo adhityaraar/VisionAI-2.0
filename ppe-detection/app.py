@@ -61,7 +61,7 @@ async def send_telegram_alert(no_hardhat_count):
         f"⚠️ Safety Gear Alert!\n"
         f"VisionAI has detected {no_hardhat_count} worker(s) without a hardhat. "
         "Please address this safety violation immediately.\n\n"
-        f"To review the camera feed, please visit: http://{ip}:5000/"
+        f"To review the camera feed, please visit: https://kzmeo-114-4-79-151.a.free.pinggy.link/detection/"
     )
     
     for chat_id in CHAT_ID:
