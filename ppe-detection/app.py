@@ -6,6 +6,10 @@ import time
 import subprocess
 import os
 import logging
+from telegram import Bot
+import asyncio
+from datetime import datetime, timedelta
+import threading
 
 app = Flask(__name__)
 
@@ -24,9 +28,52 @@ except:
     model = YOLO(MODEL_PATH)  # Fallback without device specification
 class_names = model.names
 
+# Telegram configuration
+BOT_TOKEN = "6474138130:AAF81sKjkWpt5Y5RA15kOiMDctDEB4tg_VY"
+CHAT_ID = ["-4980773889"]
+bot = Bot(token=BOT_TOKEN)
+
+# Rate limiting - prevent spam alerts
+last_alert_time = None
+ALERT_COOLDOWN = timedelta(seconds=5)  # Minimum 30 seconds between alerts
+
 cap = None
 
+async def send_telegram_alert(missing_count):
+    """Send Telegram alert when missing safety gear is detected"""
+    message = (
+        f"⚠️ Safety Gear Alert!\n"
+        f"CamGuardians has detected {missing_count} worker(s) without proper safety equipment. "
+        "Please address this safety violation immediately."
+    )
+    
+    for chat_id in CHAT_ID:
+        try:
+            await bot.send_message(chat_id=chat_id, text=message)
+        except Exception as e:
+            print(f"Error sending Telegram alert: {e}")
+
+def send_alert_if_needed(missing_count):
+    """Check rate limit and send alert if needed"""
+    global last_alert_time
+    
+    if missing_count > 0:
+        now = datetime.now()
+        if last_alert_time is None or (now - last_alert_time) >= ALERT_COOLDOWN:
+            last_alert_time = now
+            # Run async function in a background thread to avoid blocking video stream
+            def run_async():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(send_telegram_alert(missing_count))
+                loop.close()
+            
+            thread = threading.Thread(target=run_async)
+            thread.daemon = True
+            thread.start()
+
 def is_camera_index_valid(index):
+    print("masuk is camera index valid ppe detection")
     """Check if camera index is valid (cross-platform)"""
     # Try V4L2 on Linux, default backend on macOS/Windows
     try:
@@ -42,6 +89,7 @@ def is_camera_index_valid(index):
     return is_opened
 
 def get_video_capture():
+    print("masuk get video capture ppe detection")
     global cap
     if cap is None or not cap.isOpened():
         if cap is not None:
@@ -53,6 +101,7 @@ def get_video_capture():
     return cap
 
 def gen_label(frame):
+    print("masuk gen label ppe detection")
     result = model(frame, agnostic_nms=True)[0]
     labels = []
 
@@ -73,9 +122,10 @@ def gen_label(frame):
         cv2.putText(frame, f"{label_text}: {label_count}", (20, 40 + i * 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
     _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 70])
-    return buffer.tobytes()
+    return buffer.tobytes(), no_ppe_count
 
 def gen_frames():
+    print("masuk gen frames ppe detection")
     global cap
     prev_time = time.time()
 
@@ -89,7 +139,12 @@ def gen_frames():
         if not ret:
             continue
 
-        frame_bytes = gen_label(frame)
+        frame_bytes, no_ppe_count = gen_label(frame)
+        
+        # Send Telegram alert if missing safety gear detected
+        if no_ppe_count > 0:
+            send_alert_if_needed(no_ppe_count)
+        
         current_time = time.time()
         elapsed_time = current_time - prev_time
         fps = 1.0 / elapsed_time if elapsed_time > 0 else 0
