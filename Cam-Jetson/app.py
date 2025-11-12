@@ -40,9 +40,15 @@ async def send_telegram_alert(missing_count):
 def send_alert_if_needed(missing_count):
     """Check rate limit and send alert if needed"""
     global last_alert_time
+    print("masuk alert if needed")
+    print("missing count: ", missing_count)
     
     if missing_count > 0:
         now = datetime.now()
+        print("now: ", now)
+        print("last alert time: ", last_alert_time)
+        print("alert cooldown: ", ALERT_COOLDOWN)
+        print("condition: ", last_alert_time is None or (now - last_alert_time) >= ALERT_COOLDOWN)
         if last_alert_time is None or (now - last_alert_time) >= ALERT_COOLDOWN:
             last_alert_time = now
             # Run async function in a background thread to avoid blocking video stream
@@ -62,6 +68,7 @@ def gen_frames():
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280) #1280
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720) #720
         cap.set(cv2.CAP_PROP_FPS, 10)
+        print("masuk gen frames cam jetson")
 
         while True:
             ret, frame = cap.read()
@@ -81,6 +88,7 @@ def gen_frames():
 
             person_count = sum('Person' in label and float(label.split()[-1]) > 0.5 for label in labels)
             missing_safety = sum(label.startswith('NO') and float(label.split()[-1]) > 0.5 for label in labels)
+            print("missing safety: ", missing_safety)
 
             # Send Telegram alert if missing safety gear detected
             if missing_safety > 0:
