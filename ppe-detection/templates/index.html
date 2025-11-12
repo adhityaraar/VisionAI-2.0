@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PPE Detection Live Stream - Real-time Personal Protective Equipment Detection">
+    <meta name="keywords" content="PPE Detection, Safety, Real-time Detection">
+    <title>PPE Detection Stream</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial, sans-serif';
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        header, footer {
+            background-color: #15A3B7;
+            color: white;
+            text-align: center;
+            padding: 15px;
+        }
+        header {
+            flex: 0 0 auto;
+        }
+        footer {
+            flex: 0 0 auto;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: white;
+            overflow: auto;
+        }
+        img {
+            border-radius: 8px;
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .subtitle {
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 8px;
+        }
+        .subtitle .bold {
+            font-weight: bold;
+        }
+        .subtitle .regular {
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PPE Detection - Real-time Safety Surveillance</h1>
+    </header>
+    <main>
+        <img src="{{ url_for('video_feed') }}" alt="Video Feed">
+    </main>
+    <footer>
+        <p>© 2024 PPE Detection System - All Rights Reserved</p>
+    </footer>
+</body>
+</html>
+

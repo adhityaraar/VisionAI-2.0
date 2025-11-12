@@ -4,17 +4,39 @@ from ultralytics import YOLO
 import atexit
 import time
 import subprocess
+import os
+import logging
 
 app = Flask(__name__)
 
-HOME = "/home/adhityaraar/Documents"
-model = YOLO(f"{HOME}/models/yolo8n-v1.pt", 'cuda')
+# Use current directory or models directory for model path
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "best.pt")
+if not os.path.exists(MODEL_PATH):
+    MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "yolov8n.pt")
+if not os.path.exists(MODEL_PATH):
+    MODEL_PATH = os.path.join(os.path.dirname(__file__), "yolov8n.pt")
+
+# Try CUDA if available, otherwise use CPU
+device = 'cuda' if os.environ.get('USE_CUDA', '').lower() == 'true' else 'cpu'
+try:
+    model = YOLO(MODEL_PATH, device=device)
+except:
+    model = YOLO(MODEL_PATH)  # Fallback without device specification
 class_names = model.names
 
 cap = None
 
 def is_camera_index_valid(index):
-    cap = cv2.VideoCapture(index, cv2.CAP_V4L2)
+    """Check if camera index is valid (cross-platform)"""
+    # Try V4L2 on Linux, default backend on macOS/Windows
+    try:
+        import platform
+        if platform.system() == 'Linux':
+            cap = cv2.VideoCapture(index, cv2.CAP_V4L2)
+        else:
+            cap = cv2.VideoCapture(index)
+    except:
+        cap = cv2.VideoCapture(index)
     is_opened = cap.isOpened()
     cap.release()
     return is_opened
@@ -86,12 +108,17 @@ def video_feed():
 
 @app.route('/shutdown', methods=['POST'])
 def shutdown():
-    try:
-        subprocess.run(['bash', '/home/adhityaraar/Documents/shutdown.sh'])
-        return jsonify({"message": "Shutting down. Please wait..."})
-    except Exception as e:
-        logging.exception("Failed to shut down")
-        return jsonify({"error": str(e)})
+    """Optional shutdown endpoint - configure shutdown script path if needed"""
+    shutdown_script = os.environ.get('SHUTDOWN_SCRIPT', '')
+    if shutdown_script and os.path.exists(shutdown_script):
+        try:
+            subprocess.run(['bash', shutdown_script])
+            return jsonify({"message": "Shutting down. Please wait..."})
+        except Exception as e:
+            logging.exception("Failed to shut down")
+            return jsonify({"error": str(e)})
+    else:
+        return jsonify({"message": "Shutdown script not configured"})
 
 def cleanup():
     global cap
