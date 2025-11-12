@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Camera, Moon, Sun } from "lucide-react";
+import { LayoutDashboard, Camera, Settings, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import visionAiLogo from "@/assets/vision-ai-logo.png";
 const navigation = [
 	{ name: "Dashboard", href: "/", icon: LayoutDashboard },
 	{ name: "PPE Detection", href: "/detection", icon: Camera },
+	{ name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
