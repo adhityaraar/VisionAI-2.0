@@ -47,7 +47,10 @@ def get_ip_address():
             "ifconfig | grep \"inet \" | grep -Fv 127.0.0.1 | awk '{print $2}'",
             shell=True
         ).decode("utf-8").strip()
-        return ip_address or "Could not get IP address"
+        # If multiple IPs found, take only the first one
+        if ip_address:
+            return ip_address.split('\n')[0]
+        return "Could not get IP address"
     except subprocess.CalledProcessError:
         return "Could not get IP address"
 
