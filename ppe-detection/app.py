@@ -36,14 +36,15 @@ bot = Bot(token=BOT_TOKEN)
 # Rate limiting - prevent spam alerts
 last_alert_time = None
 ALERT_COOLDOWN = timedelta(seconds=5)  # Minimum 30 seconds between alerts
+high_risk_active = False
 
 cap = None
 
-async def send_telegram_alert(missing_count):
-    """Send Telegram alert when missing safety gear is detected"""
+async def send_telegram_alert(no_hardhat_count):
+    """Send Telegram alert when high risk is detected"""
     message = (
         f"⚠️ Safety Gear Alert!\n"
-        f"CamGuardians has detected {missing_count} worker(s) without proper safety equipment. "
+        f"CamGuardians has detected {no_hardhat_count} worker(s) without a hardhat. "
         "Please address this safety violation immediately."
     )
     
@@ -53,11 +54,11 @@ async def send_telegram_alert(missing_count):
         except Exception as e:
             print(f"Error sending Telegram alert: {e}")
 
-def send_alert_if_needed(missing_count):
-    """Check rate limit and send alert if needed"""
+def send_alert_if_needed(no_hardhat_count):
+    """Check rate limit and send high risk alert if needed"""
     global last_alert_time
     
-    if missing_count > 0:
+    if no_hardhat_count > 0:
         now = datetime.now()
         if last_alert_time is None or (now - last_alert_time) >= ALERT_COOLDOWN:
             last_alert_time = now
@@ -65,7 +66,7 @@ def send_alert_if_needed(missing_count):
             def run_async():
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                loop.run_until_complete(send_telegram_alert(missing_count))
+                loop.run_until_complete(send_telegram_alert(no_hardhat_count))
                 loop.close()
             
             thread = threading.Thread(target=run_async)
@@ -114,19 +115,19 @@ def gen_label(frame):
         cv2.putText(frame, label, (int(x1), int(y1)-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
 
     person_count = sum('Person' in label and float(label.split()[-1]) > 0.5 for label in labels)
-    no_ppe_count = sum(label.startswith('NO') and float(label.split()[-1]) > 0.5 for label in labels)
+    no_hardhat_count = sum(label.startswith('NO-Hardhat') and float(label.split()[-1]) > 0.5 for label in labels)
 
-    label_stats = [("Person", person_count), ("Missing PPE", no_ppe_count)]
+    label_stats = [("Person", person_count), ("No Hardhat", no_hardhat_count)]
     
     for i, (label_text, label_count) in enumerate(label_stats):
         cv2.putText(frame, f"{label_text}: {label_count}", (20, 40 + i * 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
     _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 70])
-    return buffer.tobytes(), no_ppe_count
+    return buffer.tobytes(), no_hardhat_count
 
 def gen_frames():
     print("masuk gen frames ppe detection")
-    global cap
+    global cap, high_risk_active
     prev_time = time.time()
 
     while True:
@@ -139,11 +140,16 @@ def gen_frames():
         if not ret:
             continue
 
-        frame_bytes, no_ppe_count = gen_label(frame)
+        frame_bytes, no_hardhat_count = gen_label(frame)
         
-        # Send Telegram alert if missing safety gear detected
-        if no_ppe_count > 0:
-            send_alert_if_needed(no_ppe_count)
+        # Send Telegram alert only when a new high-risk (no hardhat) event starts
+        if no_hardhat_count > 0:
+            if not high_risk_active:
+                high_risk_active = True
+                send_alert_if_needed(no_hardhat_count)
+        else:
+            if high_risk_active:
+                high_risk_active = False
         
         current_time = time.time()
         elapsed_time = current_time - prev_time
