@@ -7,7 +7,7 @@ export function MobileNav() {
 	const currentPath = router.location.pathname;
 
 	return (
-		<nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 md:hidden">
+		<nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 md:hidden z-[1000]">
 			<div className="mx-auto flex max-w-lg items-center justify-around px-4 py-2">
 				{navigation.map((item) => {
 					const isActive = currentPath === item.href;
