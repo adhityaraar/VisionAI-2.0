@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { DateTime } from "luxon";
 
 // Camera data - Jakarta Pusat locations
 interface Camera {
@@ -181,31 +182,67 @@ export function Dashboard() {
 			);
 	}, [filteredData]);
 
-	// Format date for input
+	// Get today's date in Asia/Jakarta timezone for max date validation
+	const todayDateString = useMemo(() => {
+		return DateTime.now().setZone("Asia/Jakarta").toISODate() || "";
+	}, []);
+
+	// Format date for input using Luxon with Asia/Jakarta timezone
 	const formatDateForInput = (date: Date | null): string => {
 		if (!date) return "";
-		return date.toISOString().split("T")[0];
+		return (
+			DateTime.fromJSDate(date, { zone: "Asia/Jakarta" }).toISODate() || ""
+		);
 	};
 
-	// Handle custom date change
+	// Handle custom date change using Luxon with Asia/Jakarta timezone
 	const handleCustomDateChange = (type: "start" | "end", value: string) => {
-		const date = value ? new Date(value) : null;
-		if (date) {
-			if (type === "start") {
-				date.setHours(0, 0, 0, 0);
-			} else {
-				date.setHours(23, 59, 59, 999);
-			}
+		if (!value) {
+			setCustomRange((prev) => ({
+				...prev,
+				[type === "start" ? "startDate" : "endDate"]: null,
+			}));
+			return;
 		}
+
+		// Parse date string in Asia/Jakarta timezone
+		const dateTime = DateTime.fromISO(value, { zone: "Asia/Jakarta" });
+
+		if (!dateTime.isValid) {
+			return;
+		}
+
+		// Validate: date cannot be greater than today
+		const today = DateTime.now().setZone("Asia/Jakarta").startOf("day");
+		const selectedDate = dateTime.startOf("day");
+
+		if (selectedDate > today) {
+			// If date is in the future, set to today instead
+			const finalDateTime =
+				type === "start" ? today.startOf("day") : today.endOf("day");
+			const date = finalDateTime.toJSDate();
+
+			setCustomRange((prev) => ({
+				...prev,
+				[type === "start" ? "startDate" : "endDate"]: date,
+			}));
+			setFilterType("custom");
+			return;
+		}
+
+		// Set start of day (00:00:00) or end of day (23:59:59.999) in Jakarta timezone
+		const finalDateTime =
+			type === "start" ? dateTime.startOf("day") : dateTime.endOf("day");
+
+		// Convert to JavaScript Date
+		const date = finalDateTime.toJSDate();
 
 		setCustomRange((prev) => ({
 			...prev,
 			[type === "start" ? "startDate" : "endDate"]: date,
 		}));
 
-		if (date) {
-			setFilterType("custom");
-		}
+		setFilterType("custom");
 	};
 
 	return (
@@ -258,6 +295,7 @@ export function Dashboard() {
 									<input
 										id="start-date"
 										type="date"
+										max={todayDateString}
 										value={formatDateForInput(customRange.startDate)}
 										onChange={(e) =>
 											handleCustomDateChange("start", e.target.value)
@@ -272,6 +310,7 @@ export function Dashboard() {
 									<input
 										id="end-date"
 										type="date"
+										max={todayDateString}
 										value={formatDateForInput(customRange.endDate)}
 										onChange={(e) =>
 											handleCustomDateChange("end", e.target.value)
