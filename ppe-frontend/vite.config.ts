@@ -12,6 +12,10 @@ export default defineConfig({
 	},
 	server: {
 		port: 5173,
-		allowedHosts: [".a.free.pinggy.link"], // ✅ allow your ngrok hostname
+		allowedHosts: [
+			".a.free.pinggy.link",
+			"a.pinggy.link",
+			"nzlmdgkspr.a.pinggy.link",
+		], // ✅ allow your ngrok hostname
 	},
 });
