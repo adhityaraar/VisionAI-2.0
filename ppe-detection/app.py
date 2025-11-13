@@ -59,7 +59,7 @@ async def send_telegram_alert(no_hardhat_count):
     ip = get_ip_address()
     message = (
         f"⚠️ Safety Gear Alert!\n"
-        f"VisionAI has detected {no_hardhat_count} worker(s) without a hardhat. "
+        f"VisionAI has detected high risk violation (workers without a hardhat). "
         "Please address this safety violation immediately.\n\n"
         f"To review the camera feed, please visit: https://hslti-182-3-43-245.a.free.pinggy.link/detection/"
     )
