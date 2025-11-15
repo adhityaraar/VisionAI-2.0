@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import subprocess, asyncio
 
-BOT_TOKEN = "6474138130:AAF81sKjkWpt5Y5RA15kOiMDctDEB4tg_VY"
-CHAT_ID = ["-4980773889"] #["1348980452"]
+BOT_TOKEN = "xxx"
+CHAT_ID = ["xxx"] #["xxx"]
 helmet = "helmet"
 
 message = (
